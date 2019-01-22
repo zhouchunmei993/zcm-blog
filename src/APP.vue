@@ -1,6 +1,6 @@
 <template>
-  <div>
-    app
+  <div class="a">
+    <router-view></router-view>
   </div>
 </template>
 
@@ -14,4 +14,6 @@
   }
 </script>
 
-<style scoped lang="less"></style>
+<style scoped lang="less">
+  @import "./a.less";
+</style>
