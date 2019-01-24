@@ -21,24 +21,75 @@
     <div class="list">
 
       <el-table
-          :data="tableData"
-          border
-          style="width: 100%">
+              :data="tableData"
+              border
+              style="width: 100%">
         <el-table-column
-            prop="date"
-            label="CPU内核模型"
-            width="180">
+                prop="date"
+                label="序号"
+                type="index"
+                :index="indexMethod"
+                width="180">
         </el-table-column>
         <el-table-column
-            prop="name"
-            label="CPU频率(GHz)"
-            width="180">
+                label="首图"
+                width="180">
+          <template slot-scope="scope">
+            <img style="width: 50px;height: 50px;" :src="scope.row.img" alt="">
+          </template>
         </el-table-column>
         <el-table-column
-            prop="address"
-            label="CPU执行模式">
+                prop="title"
+                label="标题">
         </el-table-column>
+        <el-table-column
+                prop="tag_name"
+                label="标签">
+        </el-table-column>
+        <el-table-column
+                prop="user_name"
+                label="作者">
+        </el-table-column>
+        <el-table-column
+                prop="create_time"
+                label="创建时间">
+        </el-table-column>
+        <el-table-column
+                label="是否为草稿">
+          <template slot-scope="scope">
+            <span v-if="scope.row.is_draft===1">是</span>
+            <span v-if="scope.row.is_draft===0">否</span>
+          </template>
+        </el-table-column>
+        <el-table-column
+                label="操作">
+          <template slot-scope="scope">
+            <router-link to="/###">
+              <el-button
+                      type="text"
+                      size="small">
+                查看
+              </el-button>
+            </router-link>
+
+            <router-link :to="'/admin/blog/edit/?id='+scope.row.id">
+              <el-button
+                      type="text"
+                      size="small">
+                编辑
+              </el-button>
+            </router-link>
+            <el-button
+                    @click="isdel(scope.row.id,scope.row.is_draft)"
+                    type="text"
+                    size="small">
+              删除
+            </el-button>
+          </template>
+        </el-table-column>
+
       </el-table>
+
 
     </div>
 
@@ -47,11 +98,11 @@
           background
           @size-change="handleSizeChange"
           @current-change="handleCurrentChange"
-          :current-page="4"
-          :page-sizes="[100, 200, 300, 400]"
-          :page-size="100"
+          :current-page="pageIndex"
+          :page-sizes="[10, 20, 30, 40]"
+          :page-size="pageSize"
           layout="total, sizes, prev, pager, next, jumper"
-          :total="400">
+          :total="total">
       </el-pagination>
     </div>
 
@@ -59,36 +110,75 @@
 </template>
 
 <script>
-
+import qs from 'qs'
   export default {
     data() {
       return {
-        tableData: [{
-          date: '2016-05-02',
-          name: '王小虎',
-          address: '上海市普陀区金沙江路 1518 弄'
-        }, {
-          date: '2016-05-04',
-          name: '王小虎',
-          address: '上海市普陀区金沙江路 1517 弄'
-        }, {
-          date: '2016-05-01',
-          name: '王小虎',
-          address: '上海市普陀区金沙江路 1519 弄'
-        }, {
-          date: '2016-05-03',
-          name: '王小虎',
-          address: '上海市普陀区金沙江路 1516 弄'
-        }]
+        tableData: [],
+        pageIndex:1,
+        pageSize:10,
+        total:0,
       }
     },
     methods: {
       handleSizeChange(val) {
-        console.log(`每页 ${val} 条`);
+        this.pageSize=val;
+        this.getData();
       },
       handleCurrentChange(val) {
-        console.log(`当前页: ${val}`);
-      }
+        this.pageIndex=val;
+        this.getData();
+      },
+      indexMethod(index) {
+        return (index+1)+(this.pageIndex-1)*this.pageSize;
+      },
+      getData(){
+        let postdata={
+          pageIndex:this.pageIndex,
+          pageSize:this.pageSize,
+        };
+        this.$Axios.get('/yun/blog/server_list?'+qs.stringify(postdata)).then(res=>{
+          if(res.code===200){
+            this.tableData=res.data.list;
+            this.total=res.data.total;
+          }else{
+            this.$message.error(res.message);
+          }
+        });
+      },
+      isdel(id,draft) {
+        this.$confirm('此操作将永久删除该文件, 是否继续?', '提示', {
+          confirmButtonText: '确定',
+          cancelButtonText: '取消',
+          type: 'warning'
+        }).then(() => {
+          this.deleteRow(id,draft);
+        }).catch(() => {
+          this.$message({
+            type: 'info',
+            message: '已取消删除'
+          });
+        });
+      },
+      deleteRow(id,draft){
+        let deldata={
+          id:id,
+          sta:1,
+          draft:draft,
+        };
+        this.$Axios.post('/yun/blog/blog_status',deldata).then(res=>{
+          if(res.code===200){
+            this.$message.success('删除成功');
+            this.getData();
+          }
+          else{
+            this.$message.error(res.message);
+          }
+        });
+      },
+    },
+    created(){
+      this.getData();
     }
   }
 </script>

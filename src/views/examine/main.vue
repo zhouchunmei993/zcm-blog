@@ -3,14 +3,14 @@
 
     <div class="param">
       <el-form :inline="true" class="demo-form-inline">
-        <el-form-item label="关键字">
-          <el-input placeholder="关键字"></el-input>
-        </el-form-item>
-        <el-form-item label="标签">
-          <el-select placeholder="标签">
-            <el-option label="标签1" value="shanghai"></el-option>
-            <el-option label="标签2" value="beijing"></el-option>
-          </el-select>
+        <el-form-item label="时间区间查询">
+          <el-date-picker
+                  v-model="date"
+                  type="daterange"
+                  range-separator="至"
+                  start-placeholder="开始日期"
+                  end-placeholder="结束日期">
+          </el-date-picker>
         </el-form-item>
         <el-form-item>
           <el-button type="primary">查询</el-button>
@@ -21,73 +21,228 @@
     <div class="list">
 
       <el-table
-          :data="tableData"
-          border
-          style="width: 100%">
+              :data="list"
+              border
+              style="width: 100%">
         <el-table-column
-            prop="date"
-            label="CPU内核模型"
-            width="180">
+                label="#"
+                align="center"
+                width="50">
+          <template slot-scope="scope">
+            {{showIndex(scope.$index)}}
+          </template>
         </el-table-column>
         <el-table-column
-            prop="name"
-            label="CPU频率(GHz)"
-            width="180">
+                prop="time"
+                label="类型"
+                align="center"
+                width="80">
+          <template slot-scope="scope">
+            <el-tag v-if="scope.row.type === 0">评论</el-tag>
+            <el-tag v-else type="success">留言</el-tag>
+          </template>
         </el-table-column>
         <el-table-column
-            prop="address"
-            label="CPU执行模式">
+                prop="cont"
+                label="内容">
         </el-table-column>
+        <el-table-column
+                prop="user_name"
+                label="书写人"
+                align="center"
+                width="80">
+        </el-table-column>
+        <el-table-column
+                prop="create_time"
+                label="评论时间"
+                align="center"
+                width="160">
+          <template slot-scope="scope">
+            {{$Tool.formatDate(scope.row.create_time, 'YY年MM月DD日hh点mm')}}
+          </template>
+        </el-table-column>
+        <el-table-column
+                prop="time"
+                label="状态"
+                align="center"
+                width="80">
+          <template slot-scope="scope">
+            <el-tag>待审核</el-tag>
+          </template>
+        </el-table-column>
+        <el-table-column
+                label="操作"
+                width="230">
+          <template slot-scope="scope">
+            <a target="_blank" href="###">
+              <el-button size="mini">查看原文</el-button>
+            </a>
+            <span>
+              <el-button size="mini" type="primary" @click="examineFun">审核</el-button>
+            </span>
+            <el-popover
+                    :ref="scope.row.id"
+                    placement="top"
+                    width="160">
+              <p>确定删除吗？</p>
+              <div style="text-align: right; margin: 0">
+                <el-button size="mini" type="text" @click="$refs[scope.row.id].doClose()">取消</el-button>
+                <el-button type="primary" size="mini">确定</el-button>
+              </div>
+              <el-button type="danger" slot="reference" size="mini">删除</el-button>
+            </el-popover>
+          </template>
+        </el-table-column>
+
       </el-table>
 
     </div>
 
     <div class="page">
       <el-pagination
-          background
-          @size-change="handleSizeChange"
-          @current-change="handleCurrentChange"
-          :current-page="4"
-          :page-sizes="[100, 200, 300, 400]"
-          :page-size="100"
-          layout="total, sizes, prev, pager, next, jumper"
-          :total="400">
+              background
+              @size-change="pageSizeFun"
+              @current-change="pageIndexFun"
+              :current-page="1"
+              :page-sizes="[10, 20, 30, 40]"
+              :page-size="10"
+              layout="total, sizes, prev, pager, next, jumper"
+              :total="50">
       </el-pagination>
     </div>
+
+    <el-dialog
+            title="审核"
+            :visible.sync="examineSta"
+            width="50%">
+      <div class="examine_dig">
+
+        <div class="examine_msg">
+          <el-alert
+                  title="审核提醒"
+                  type="warning"
+                  description="请遵循国家对网上发帖、评论的法律条例约束和规范严格审核"
+                  close-text="知道了"
+                  show-icon>
+          </el-alert>
+        </div>
+
+        <div class="examine">
+
+          <p>原文:</p>
+
+          <div class="look">
+            <a target="_blank" href="###">
+              <span>XXX</span>
+            </a>
+          </div>
+
+          <p>内容:</p>
+
+          <div class="cont" v-html="">
+          </div>
+
+        </div>
+
+      </div>
+      <div slot="footer" class="dialog-footer">
+        <el-button @click="examineSta = false">取 消</el-button>
+        <el-button type="danger">不通过</el-button>
+        <el-button type="success">通过</el-button>
+      </div>
+    </el-dialog>
 
   </div>
 </template>
 
 <script>
-
   export default {
     data() {
       return {
-        tableData: [{
-          date: '2016-05-02',
-          name: '王小虎',
-          address: '上海市普陀区金沙江路 1518 弄'
-        }, {
-          date: '2016-05-04',
-          name: '王小虎',
-          address: '上海市普陀区金沙江路 1517 弄'
-        }, {
-          date: '2016-05-01',
-          name: '王小虎',
-          address: '上海市普陀区金沙江路 1519 弄'
-        }, {
-          date: '2016-05-03',
-          name: '王小虎',
-          address: '上海市普陀区金沙江路 1516 弄'
-        }]
+        param: {
+          pageIndex: 1,
+          pageSize: 10,
+        },
+        date: [],
+        list: [
+          {
+            "id": 6,
+            "u_id": 3,
+            "b_id": 164,
+            "f_id": null,
+            "cont": "不错啊222",
+            "is_del": "0",
+            "is_pass": 0,
+            "create_time": "2019-01-19T17:05:56.000Z",
+            "type": 1,
+            "user_name": "管理陈",
+            "blog_title": "【CSS】表格td内容的自适应垂直居中",
+            "blog_id": 164
+          },
+          {
+            "id": 6,
+            "u_id": 3,
+            "b_id": 164,
+            "f_id": null,
+            "cont": "不错啊222",
+            "is_del": "0",
+            "is_pass": 0,
+            "create_time": "2019-01-19T17:05:56.000Z",
+            "type": 1,
+            "user_name": "管理陈",
+            "blog_title": "【CSS】表格td内容的自适应垂直居中",
+            "blog_id": 164
+          },
+          {
+            "id": 6,
+            "u_id": 3,
+            "b_id": 164,
+            "f_id": null,
+            "cont": "不错啊222",
+            "is_del": "0",
+            "is_pass": 0,
+            "create_time": "2019-01-19T17:05:56.000Z",
+            "type": 1,
+            "user_name": "管理陈",
+            "blog_title": "【CSS】表格td内容的自适应垂直居中",
+            "blog_id": 164
+          },
+          {
+            "id": 6,
+            "u_id": 3,
+            "b_id": 164,
+            "f_id": null,
+            "cont": "不错啊222",
+            "is_del": "0",
+            "is_pass": 0,
+            "create_time": "2019-01-19T17:05:56.000Z",
+            "type": 1,
+            "user_name": "管理陈",
+            "blog_title": "【CSS】表格td内容的自适应垂直居中",
+            "blog_id": 164
+          },
+        ],
+        examineSta: false,
       }
     },
+    created() {
+    },
     methods: {
-      handleSizeChange(val) {
-        console.log(`每页 ${val} 条`);
+      // 序号
+      showIndex(index) {
+        return index + (this.param.pageIndex - 1) * this.param.pageSize + 1;
       },
-      handleCurrentChange(val) {
-        console.log(`当前页: ${val}`);
+      // 每页条数改变
+      pageSizeFun(val) {
+        console.log(val);
+      },
+      // 分页改变
+      pageIndexFun(val) {
+        console.log(val);
+      },
+      // 打开弹窗
+      examineFun() {
+        this.examineSta = true;
       }
     }
   }
@@ -95,7 +250,6 @@
 
 <style lang="less" scoped>
   @import "~@/assets/less/theme.less";
-
   .blog {
     .param {
       border-bottom: 1px solid #f1f1f1;
@@ -106,6 +260,36 @@
     .page {
       text-align: right;
       margin-top: 22px;
+    }
+    .list_img {
+      width: 60px;
+      height: 60px;
+    }
+    /deep/ .el-range-separator {
+      width: auto;
+    }
+    .examine_dig {
+      .examine_msg {
+      }
+      .examine {
+        margin-top: 10px;
+        p {
+          font-weight: bold;
+        }
+        .cont {
+          width: 100%;
+          height: 300px;
+          border: 1px solid #e1e1e1;
+          padding: 10px;
+          overflow: auto;
+        }
+        .look {
+          a {
+            color: #409EFF;
+            text-decoration: underline;
+          }
+        }
+      }
     }
   }
 </style>

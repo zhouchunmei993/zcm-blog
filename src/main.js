@@ -29,6 +29,13 @@ import {
   Checkbox,
   DatePicker,
   Switch,
+  Radio,
+  RadioGroup,
+  RadioButton,
+  Alert,
+  Popover,
+  Dialog,
+  MessageBox,
   Message
 } from 'element-ui';
 
@@ -54,7 +61,17 @@ Vue.use(CheckboxGroup);
 Vue.use(Checkbox);
 Vue.use(DatePicker);
 Vue.use(Switch);
+Vue.use(Radio);
+Vue.use(RadioGroup);
+Vue.use(RadioButton);
+Vue.use(Alert);
+Vue.use(Popover);
+Vue.use( Dialog);
 Vue.prototype.$message = Message;
+Vue.prototype.$msgbox = MessageBox;
+Vue.prototype.$alert = MessageBox.alert;
+Vue.prototype.$confirm = MessageBox.confirm;
+Vue.prototype.$prompt = MessageBox.prompt;
 Vue.config.productionTip = false;
 Vue.prototype.$Axios = Axios;
 Vue.prototype.$Tool = Tool;

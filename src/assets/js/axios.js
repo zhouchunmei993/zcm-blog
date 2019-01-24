@@ -16,7 +16,7 @@ import axios from 'axios'
 axios.defaults.headers.post['Content-Type'] = 'application/x-www-form-urlencoded'; // Form Data 模式
 // axios.defaults.headers.post['Content-Type'] = 'application/json'; // Request Payload 模式
 // axios.defaults.headers.post['Content-Type'] = 'multipart/form-data'; // Form Data 文件流模式(与x-www-form-urlencoded相似)
-axios.defaults.headers.common['Authorization'] = sessionStorage.getItem("sessionId");
+axios.defaults.headers.common['Authorization'] = sessionStorage.getItem("token");
 
 /**
  * lw get统一请求

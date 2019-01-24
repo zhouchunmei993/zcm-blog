@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div style="width: 100%;">
     <app-header/>
     <div class="app_content">
       <div class="app_menu">

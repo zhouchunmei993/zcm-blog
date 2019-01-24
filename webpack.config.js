@@ -155,12 +155,12 @@ const env = {
         template: './index.html'
       }),
       // 拷贝资源文件
-      // new CopyWebpackPlugin([
-      //   {
-      //     from: `static/globalvar.test.js`,
-      //     to: 'static/js/globalvar.js'
-      //   }
-      // ])
+      new CopyWebpackPlugin([
+        {
+          from: `static/globalvar.test.js`,
+          to: 'static/js/globalvar.js'
+        }
+      ])
     ],
   },
   production: {
