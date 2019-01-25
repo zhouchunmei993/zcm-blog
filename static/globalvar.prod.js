@@ -1,1 +1,1 @@
-var defUrl = '';
+var defUrl = 'https://api.bstu.cn';
