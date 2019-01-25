@@ -35,6 +35,7 @@ import {
   Alert,
   Popover,
   Dialog,
+  Tag,
   MessageBox,
   Message
 } from 'element-ui';
@@ -67,6 +68,8 @@ Vue.use(RadioButton);
 Vue.use(Alert);
 Vue.use(Popover);
 Vue.use( Dialog);
+Vue.use( Tag);
+
 Vue.prototype.$message = Message;
 Vue.prototype.$msgbox = MessageBox;
 Vue.prototype.$alert = MessageBox.alert;

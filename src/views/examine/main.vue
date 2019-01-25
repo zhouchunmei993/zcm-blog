@@ -21,7 +21,7 @@
     <div class="list">
 
       <el-table
-              :data="list"
+              :data="tableData"
               border
               style="width: 100%">
         <el-table-column
@@ -33,7 +33,7 @@
           </template>
         </el-table-column>
         <el-table-column
-                prop="time"
+                prop="type"
                 label="类型"
                 align="center"
                 width="80">
@@ -62,12 +62,15 @@
           </template>
         </el-table-column>
         <el-table-column
-                prop="time"
+                prop="is_pass"
                 label="状态"
                 align="center"
                 width="80">
           <template slot-scope="scope">
-            <el-tag>待审核</el-tag>
+            <!--is_pass,0.未审核，1.通过，2.未通过-->
+            <el-tag v-if="scope.row.is_pass===0">待审核</el-tag>
+            <el-tag type="success" v-if="scope.row.is_pass===1">通过</el-tag>
+            <el-tag type="danger" v-if="scope.row.is_pass===2">未通过</el-tag>
           </template>
         </el-table-column>
         <el-table-column
@@ -78,7 +81,7 @@
               <el-button size="mini">查看原文</el-button>
             </a>
             <span>
-              <el-button size="mini" type="primary" @click="examineFun">审核</el-button>
+              <el-button v-if="scope.row.is_pass===0" size="mini" type="primary" @click="examineFun(scope.row)">审核</el-button>
             </span>
             <el-popover
                     :ref="scope.row.id"
@@ -87,7 +90,7 @@
               <p>确定删除吗？</p>
               <div style="text-align: right; margin: 0">
                 <el-button size="mini" type="text" @click="$refs[scope.row.id].doClose()">取消</el-button>
-                <el-button type="primary" size="mini">确定</el-button>
+                <el-button type="primary" size="mini" @click="del(scope.row.id)">确定</el-button>
               </div>
               <el-button type="danger" slot="reference" size="mini">删除</el-button>
             </el-popover>
@@ -103,11 +106,11 @@
               background
               @size-change="pageSizeFun"
               @current-change="pageIndexFun"
-              :current-page="1"
+              :current-page="pageIndex"
               :page-sizes="[10, 20, 30, 40]"
-              :page-size="10"
+              :page-size="pageSize"
               layout="total, sizes, prev, pager, next, jumper"
-              :total="50">
+              :total="total">
       </el-pagination>
     </div>
 
@@ -139,7 +142,7 @@
 
           <p>内容:</p>
 
-          <div class="cont" v-html="">
+          <div class="cont" v-html="rowdata.cont">
           </div>
 
         </div>
@@ -147,8 +150,8 @@
       </div>
       <div slot="footer" class="dialog-footer">
         <el-button @click="examineSta = false">取 消</el-button>
-        <el-button type="danger">不通过</el-button>
-        <el-button type="success">通过</el-button>
+        <el-button type="danger" @click="submit(2)">不通过</el-button>
+        <el-button type="success" @click="submit(1)">通过</el-button>
       </div>
     </el-dialog>
 
@@ -156,94 +159,88 @@
 </template>
 
 <script>
+  import qs from 'qs';
   export default {
     data() {
       return {
-        param: {
-          pageIndex: 1,
-          pageSize: 10,
-        },
-        date: [],
-        list: [
-          {
-            "id": 6,
-            "u_id": 3,
-            "b_id": 164,
-            "f_id": null,
-            "cont": "不错啊222",
-            "is_del": "0",
-            "is_pass": 0,
-            "create_time": "2019-01-19T17:05:56.000Z",
-            "type": 1,
-            "user_name": "管理陈",
-            "blog_title": "【CSS】表格td内容的自适应垂直居中",
-            "blog_id": 164
-          },
-          {
-            "id": 6,
-            "u_id": 3,
-            "b_id": 164,
-            "f_id": null,
-            "cont": "不错啊222",
-            "is_del": "0",
-            "is_pass": 0,
-            "create_time": "2019-01-19T17:05:56.000Z",
-            "type": 1,
-            "user_name": "管理陈",
-            "blog_title": "【CSS】表格td内容的自适应垂直居中",
-            "blog_id": 164
-          },
-          {
-            "id": 6,
-            "u_id": 3,
-            "b_id": 164,
-            "f_id": null,
-            "cont": "不错啊222",
-            "is_del": "0",
-            "is_pass": 0,
-            "create_time": "2019-01-19T17:05:56.000Z",
-            "type": 1,
-            "user_name": "管理陈",
-            "blog_title": "【CSS】表格td内容的自适应垂直居中",
-            "blog_id": 164
-          },
-          {
-            "id": 6,
-            "u_id": 3,
-            "b_id": 164,
-            "f_id": null,
-            "cont": "不错啊222",
-            "is_del": "0",
-            "is_pass": 0,
-            "create_time": "2019-01-19T17:05:56.000Z",
-            "type": 1,
-            "user_name": "管理陈",
-            "blog_title": "【CSS】表格td内容的自适应垂直居中",
-            "blog_id": 164
-          },
-        ],
+        tableData: [],
         examineSta: false,
+        pageIndex:1,
+        pageSize:10,
+        total:0,
+        rowdata:{},
       }
     },
-    created() {
-    },
     methods: {
+      getData(){
+        let postdata={
+          pageIndex:this.pageIndex,
+          pageSize:this.pageSize,
+        };
+        this.$Axios.get('/yun/blog/comment_list?'+qs.stringify(postdata)).then(res=>{
+          if(res.code===200){
+            this.tableData=res.data.list;
+            this.total=res.data.total;
+          }else{
+            this.$message.error(res.message);
+          }
+        });
+      },
       // 序号
       showIndex(index) {
-        return index + (this.param.pageIndex - 1) * this.param.pageSize + 1;
+        return index + (this.pageIndex - 1) * this.pageSize + 1;
       },
       // 每页条数改变
       pageSizeFun(val) {
-        console.log(val);
+        this.pageSize=val;
+        this.getData();
       },
       // 分页改变
       pageIndexFun(val) {
-        console.log(val);
+        this.pageIndex=val;
+        this.getData();
       },
-      // 打开弹窗
-      examineFun() {
+      del(id){
+        let deldata={
+          id:id,
+          sta :1 ,//是否删除 0:正常 1:删除
+        };
+        this.$Axios.post('/yun/blog/evaluate_del',deldata).then(res=>{
+          if(res.code===200){
+            this.$refs[id].doClose();
+            this.$message.success(res.message);
+            this.getData();
+          }
+          else{
+            this.$message.error(res.message);
+          }
+        });
+      },
+      // 打开弹窗 审核
+      examineFun(rowdata) {
         this.examineSta = true;
-      }
+        this.rowdata=rowdata;
+      },
+      //审核提交
+      submit(i){
+        let examinedata={
+          id: this.rowdata.id,
+          sta :i ,//是否通过审核 0:待审核 1:通过 2:未通过
+        };
+        this.$Axios.post('/yun/blog/evaluate_examine',examinedata).then(res=>{
+          if(res.code===200){
+            this.examineSta=false;
+            this.$message.success(res.message);
+            this.getData();
+          }
+          else{
+            this.$message.error(res.message);
+          }
+        });
+      },
+    },
+    created(){
+      this.getData();
     }
   }
 </script>

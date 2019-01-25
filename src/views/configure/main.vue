@@ -68,8 +68,8 @@
                     show-icon>
             </el-alert>
             <div class="set_author">
-              <el-input></el-input>
-              <el-button type="primary" plain>保存</el-button>
+              <el-input v-model="configureList.val"></el-input>
+              <el-button type="primary" plain @click="saveconfigure">保存</el-button>
             </div>
           </div>
         </el-card>
@@ -109,7 +109,12 @@
           website: [{required: true, message: '请输入站点', trigger: 'blur'},],
         },
         friendSta: false,
-        tableData: []
+        tableData: [],
+        configureList:{
+          val:'',
+          c_key:''
+        },
+
       }
     },
     methods: {
@@ -123,6 +128,39 @@
           }
         });
       },
+      getconfigure(){
+        this.$Axios.get('/yun/blog/get_configure').then(res=>{
+
+          if(res.code===200){
+            // this.configureList=res.data.filter(item => item.c_key === 'author')[0];
+
+            res.data.map(item=>{
+              if(item.c_key==='author'){
+                this.configureList = item;
+              }
+            });
+
+          }
+          else{
+            this.$message.error(res.message);
+          }
+        });
+      },
+      saveconfigure(){// 修改配置
+        let configuredata={
+          c_key:this.configureList.c_key,
+          val:this.configureList.val
+        };
+        this.$Axios.post('/yun/blog/set_configure',configuredata).then(res=>{
+          if(res.code===200){
+            this.$message.success(res.message);
+            this.getconfigure();
+          }
+          else{
+            this.$message.error(res.message);
+          }
+        });
+      },
       edit(rowdata) {
         this.friend =rowdata;
         this.friendSta = true;
@@ -130,6 +168,22 @@
       addfriend(){
         this.friendSta=true;
         this.friend={};
+      },
+      del(id){
+        let deldata={
+          id:id,
+          sta :1 ,//删除1:删除 0:正常
+        };
+        this.$Axios.post('/yun/blog/operation_friend',deldata).then(res=>{
+          if(res.code===200){
+            this.$refs[id].doClose();
+            this.$message.success(res.message);
+            this.getdata();
+          }
+          else{
+            this.$message.error(res.message);
+          }
+        });
       },
       submitForm() {
         this.$refs.friend.validate((valid) => {
@@ -166,6 +220,7 @@
     },
     created(){
       this.getdata();
+      this.getconfigure();
     }
   }
 </script>

@@ -1,4 +1,6 @@
 import axios from 'axios'
+import router from '../../router'
+
 // import NProgress from 'nprogress'
 // import Promise from 'bluebird';
 // // import {message} from 'antd';
@@ -33,7 +35,16 @@ const get = (url, name = 'defUrl', config) => {
 
     axios.get(getUrl).then(res => {
       // NProgress.done();
-      resolve(res.data);
+      if(res.data.code===401){
+        router.push({path: '/'});
+      }else{
+        resolve(res.data);
+      }
+
+
+
+
+
     }).catch(function (error) {
       // NProgress.done();
       if (error.response) {
@@ -73,7 +84,11 @@ const post = (url, parms, name = 'defUrl', config) => {
     // NProgress.inc();
     axios.post(postUrl, parms).then(res => {
       // NProgress.done();
-      resolve(res.data);
+      if(res.data.code===401){
+        router.push({path: '/'});
+      }else{
+        resolve(res.data);
+      }
     }).catch(function (error) {
       // NProgress.done();
       if (error.response) {
